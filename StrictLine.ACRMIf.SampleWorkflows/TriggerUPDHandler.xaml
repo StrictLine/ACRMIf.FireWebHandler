@@ -1,0 +1,135 @@
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler"
+ xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+ xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+ xmlns:mca="clr-namespace:Microsoft.CSharp.Activities;assembly=System.Activities"
+ xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
+ xmlns:saf="clr-namespace:StrictLine.ACRMIf.FireWebHandler;assembly=StrictLine.ACRMIf.FireWebHandler"
+ xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+ xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+ xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+ xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib"
+ xmlns:sw="clr-namespace:System.Web;assembly=System.Web"
+ xmlns:uiwa="clr-namespace:update.Interface.Workflows.Activities;assembly=update.Interface"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property Name="request" Type="InArgument(sw:HttpRequest)" />
+    <x:Property Name="response" Type="InArgument(sw:HttpResponse)" />
+    <x:Property Name="responseData" Type="OutArgument(x:Object)" />
+    <x:Property Name="responseMediaType" Type="OutArgument(x:String)" />
+  </x:Members>
+  <sap2010:ExpressionActivityEditor.ExpressionActivityEditor>C#</sap2010:ExpressionActivityEditor.ExpressionActivityEditor>
+  <sap2010:WorkflowViewState.IdRef>StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler</sap2010:WorkflowViewState.IdRef>
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String">
+      <x:String>System</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Data</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Text</x:String>
+      <x:String>System.Web</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference">
+      <AssemblyReference>Microsoft.CSharp</AssemblyReference>
+      <AssemblyReference>System</AssemblyReference>
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System.Runtime.Serialization</AssemblyReference>
+      <AssemblyReference>System.ServiceModel</AssemblyReference>
+      <AssemblyReference>System.ServiceModel.Activities</AssemblyReference>
+      <AssemblyReference>System.Web</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>System.Xml</AssemblyReference>
+      <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>update.Interface</AssemblyReference>
+      <AssemblyReference>StrictLine.ACRMIf.FireWebHandler</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>StrictLine.ACRMIf.SampleWorkflows</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <Sequence DisplayName="Trigger WebHandler" sap2010:WorkflowViewState.IdRef="Sequence_1">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String" Name="inputRequest" />
+      <Variable x:TypeArguments="x:String" Name="processedResponse" />
+    </Sequence.Variables>
+    <saf:GetHttpBody DisplayName="GetHttpBody of HTTPrequest" sap2010:WorkflowViewState.IdRef="GetHttpBody_2">
+      <saf:GetHttpBody.bodyContent>
+        <OutArgument x:TypeArguments="x:String">
+          <mca:CSharpReference x:TypeArguments="x:String">inputRequest</mca:CSharpReference>
+        </OutArgument>
+      </saf:GetHttpBody.bodyContent>
+      <saf:GetHttpBody.httpRequest>
+        <InArgument x:TypeArguments="sw:HttpRequest">
+          <mca:CSharpValue x:TypeArguments="sw:HttpRequest">request</mca:CSharpValue>
+        </InArgument>
+      </saf:GetHttpBody.httpRequest>
+      <saf:GetHttpBody.httpResponse>
+        <InArgument x:TypeArguments="sw:HttpResponse">
+          <mca:CSharpValue x:TypeArguments="sw:HttpResponse">response</mca:CSharpValue>
+        </InArgument>
+      </saf:GetHttpBody.httpResponse>
+    </saf:GetHttpBody>
+    <uiwa:ProcessXml DisplayName="ProcessXmlRequest" sap2010:WorkflowViewState.IdRef="ProcessXml_1" LoggingEnabled="True">
+      <uiwa:ProcessXml.Result>
+        <OutArgument x:TypeArguments="x:String">
+          <mca:CSharpReference x:TypeArguments="x:String">processedResponse</mca:CSharpReference>
+        </OutArgument>
+      </uiwa:ProcessXml.Result>
+      <uiwa:ProcessXml.Xml>
+        <InArgument x:TypeArguments="x:String">
+          <mca:CSharpValue x:TypeArguments="x:String">inputRequest</mca:CSharpValue>
+        </InArgument>
+      </uiwa:ProcessXml.Xml>
+    </uiwa:ProcessXml>
+    <saf:FireWebHandler targetBusinessObjects="{x:Null}" sap2010:WorkflowViewState.IdRef="FireWebHandler_1">
+      <saf:FireWebHandler.xmlResponse>
+        <InArgument x:TypeArguments="x:String">
+          <mca:CSharpValue x:TypeArguments="x:String">processedResponse</mca:CSharpValue>
+        </InArgument>
+      </saf:FireWebHandler.xmlResponse>
+    </saf:FireWebHandler>
+    <Assign DisplayName="Set output mime type" sap2010:WorkflowViewState.IdRef="Assign_1">
+      <Assign.To>
+        <OutArgument x:TypeArguments="x:String">
+          <mca:CSharpReference x:TypeArguments="x:String">responseMediaType</mca:CSharpReference>
+        </OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="x:String">text/xml</InArgument>
+      </Assign.Value>
+    </Assign>
+    <Assign DisplayName="Set Response Body" sap2010:WorkflowViewState.IdRef="Assign_2">
+      <Assign.To>
+        <OutArgument x:TypeArguments="x:Object">
+          <mca:CSharpReference x:TypeArguments="x:Object">responseData</mca:CSharpReference>
+        </OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="x:String">
+          <mca:CSharpValue x:TypeArguments="x:String">processedResponse</mca:CSharpValue>
+        </InArgument>
+      </Assign.Value>
+    </Assign>
+    <sads:DebugSymbol.Symbol>d2tDOlxfX1Byb2plY3RzXFZpc3VhbFN0dWRpb1xQcm9qZWN0c1xGaXJlV2ViSGFuZGxlclxTdHJpY3RMaW5lLkFDUk1JZi5TYW1wbGVXb3JrZmxvd3NcVHJpZ2dlclVQREhhbmRsZXIueGFtbBE1A3UOAgEBOgVKFwIBMksFVhcCASJXBV0aAgEaXgVnDgIBEWgFcw4CAQJCC0JWAgFBRwtHWAIBOj0LPV0CATNLdEt6AgExUwtTVQIBKk4LTmICASNaC1paAgEbZTBlOAIBGWELYWICARJwC3BaAgEKawtrXQIBAw==</sads:DebugSymbol.Symbol>
+  </Sequence>
+  <sap2010:WorkflowViewState.ViewStateManager>
+    <sap2010:ViewStateManager>
+      <sap2010:ViewStateData Id="GetHttpBody_2" sap:VirtualizedContainerService.HintSize="242,22" />
+      <sap2010:ViewStateData Id="ProcessXml_1" sap:VirtualizedContainerService.HintSize="242,22" />
+      <sap2010:ViewStateData Id="FireWebHandler_1" sap:VirtualizedContainerService.HintSize="242,22" />
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,62" />
+      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,62" />
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="264,474">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler" sap:VirtualizedContainerService.HintSize="304,554" />
+    </sap2010:ViewStateManager>
+  </sap2010:WorkflowViewState.ViewStateManager>
+</Activity>
