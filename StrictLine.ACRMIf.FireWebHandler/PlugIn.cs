@@ -19,6 +19,7 @@ namespace StrictLine.ACRMIf.FireWebHandler
         public void Init(IServiceContainer services, XPathNavigator settingsNavigator)
         {
             FireWebHandler.Services = services;
+            FetchPotentialBOChange.Services = services;
         }
 
         public void Load()

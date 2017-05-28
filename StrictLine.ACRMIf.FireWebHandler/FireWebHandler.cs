@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Activities;
 using System.Xml;
 using update.Crm.Contracts;
@@ -12,7 +11,6 @@ using update.Crm.Extensions;
 using update.Lib.Contracts.Events;
 using update.Crm.BusinessObjects;
 using update.Crm.Contracts.Events;
-using update.Crm.Contracts.BusinessObjects;
 
 namespace StrictLine.ACRMIf.FireWebHandler
 {
@@ -22,20 +20,53 @@ namespace StrictLine.ACRMIf.FireWebHandler
         public static IServiceLocator Services { get; set; }
 
         public InArgument<string> xmlResponse { get; set; }
-        public InArgument<List<IBusinessObject>> targetBusinessObjects { get; set; }
+        public InArgument<List<Tuple<string, BusinessObject>>> targetCRUDs { get; set; }
 
         protected override void Execute(CodeActivityContext context)
         {
+            var targetCRUDs = context.GetValue(this.targetCRUDs);
             var xmlResponse = new XmlDocument();
             xmlResponse.LoadXml(context.GetValue(this.xmlResponse));
 
-            //@TODO paramaterize method in order to set custom XPath, respectively be able to process New Event
-            var affectedItems = xmlResponse.SelectNodes("/response/update/return[@id]").Cast<XmlNode>()
-                .Union(xmlResponse.SelectNodes("/response/import/return[@id and @type='update']").Cast<XmlNode>());
+            var crudItems = xmlResponse.SelectNodes("/response/*[update|import]").OfType<XmlNode>();
 
-            if (affectedItems.Count(affItem => affItem.Attributes.GetNamedItem("id") != null) < 1) return;
+            // nothing happened -> return
+            if (crudItems.Count() < 1) return;
 
-            var affectedUIDs = affectedItems.Select(affectedItem => 
+            for(int i = 0;i < crudItems.Count();i++)
+            {
+                var crudNode = crudItems.ElementAt(i);
+                if (crudNode.FirstChild.Attributes["type"].Value == "error")
+                    continue;
+
+                var resultBO = targetCRUDs.First().Item2;
+                switch (crudNode.Name)
+                {
+                    case "update":
+                        foreach (var updateReturnItem in crudNode.SelectNodes("return").OfType<XmlNode>())
+                        {
+                            var currentRecordUid = RecordUid.From(
+                                updateReturnItem.Attributes["table"].Value, 
+                                RecordId.FromString(updateReturnItem.Attributes["id"].Value)
+                            );
+
+                            BusinessObject currentBO = new BusinessObject(resultBO);
+                            currentBO.Uid = currentRecordUid;
+                            currentBO.Update(); // links won't work
+                        }
+                        break;
+                    case "import":
+                        var currentRecordUid = RecordUid.From(
+                                crudNode.FirstChild.Attributes["table"].Value,
+                                RecordId.FromString(crudNode.FirstChild.Attributes["id"].Value)
+                        );
+                        break;
+                    default: continue;
+                }
+
+            }
+
+            var affectedUIDs = crudItems.Select(affectedItem => 
                 RecordUid.From(affectedItem.Attributes["table"].Value, RecordId.FromString(affectedItem.Attributes["id"].Value))
             );
 
