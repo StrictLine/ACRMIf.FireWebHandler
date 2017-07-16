@@ -10,17 +10,19 @@ using update.Lib.Contracts.Events;
 using update.Crm.Extensions;
 using update.Crm.BusinessObjects;
 using System.Collections.Generic;
+using update.Lib.Logging;
 
 namespace StrictLine.ACRMIf.FireWebHandler
 {
 
     public sealed class FetchPotentialBOChange : CodeActivity
     {
-        public static IServiceLocator Services { get; set; }
+        public static IServiceLocator ApplicationServices { get; set; }
+        private IServiceLocator SUServices { get; set; }
+        private LogFacility logFac = new LogFacility("FetchPotentialBOChange");
 
         // Define an activity input argument of type string
         public InArgument<string> xmlRequestStr { get; set; }
-        public InArgument<string> searchedBOXmlName { get; set; }
 
         public OutArgument<List<Tuple<string, BusinessObject>>> targetCRUDs { get; set; }
 
@@ -28,30 +30,35 @@ namespace StrictLine.ACRMIf.FireWebHandler
         // and return the value from the Execute method.
         protected override void Execute(CodeActivityContext context)
         {
+            Log.Current.Debug(logFac, "Execution has been started!");
+
             var targets = new List<Tuple<string, BusinessObject>>();
 
             // Build up xml struct upon bpm input
             var xmlRequest = new XmlDocument();
             xmlRequest.LoadXml(context.GetValue(xmlRequestStr));
 
-            var potentialUpds = xmlRequest.SelectNodes(string.Format("/request/update/fields/*[{0}]", context.GetValue(searchedBOXmlName) ))
+            var potentialUpds = xmlRequest.SelectNodes("/request/update/fields/*")
                 .OfType<XmlNode>();
-            var potentialImps = xmlRequest.SelectNodes(string.Format("/request/import/fields/*[{0}]", context.GetValue(searchedBOXmlName) ))
+            var potentialImps = xmlRequest.SelectNodes("/request/import/fields/*")
                 .OfType<XmlNode>();
 
             // Generate Business Objects with input params
             using (Session.EnsureScope(Guid.NewGuid().ToString()))
-            using (var suSession = Services.Get<ICrmBaseApplication>().CreateSpecialUserSession())
+            using (var suSession = ApplicationServices.Get<ICrmBaseApplication>().CreateSpecialUserSession())
             {
-                var suServices = suSession.Services;
-                var eventHub = suServices.Get<IEventHub>();
+                SUServices = suSession.Services;
 
                 targets = RetrieveTargets("update", potentialUpds)
-                    .Concat(RetrieveTargets("import", potentialImps))
-                    .ToList();
+                .Concat(RetrieveTargets("import", potentialImps))
+                .ToList();
             }
 
+            Log.Current.DebugFormat(logFac, "{0} target business objects will be potentially affected!", targets.Count);
+
             context.SetValue(targetCRUDs, targets);
+
+            Log.Current.Debug(logFac, "Execution has finished!");
         }
 
         private List<Tuple<string, BusinessObject>> RetrieveTargets(string operationName, IEnumerable<XmlNode> xmlNodes)
@@ -64,9 +71,9 @@ namespace StrictLine.ACRMIf.FireWebHandler
 
                 try
                 {
-                    var infoAreaSrv = Services.GetInfoAreaService(infoAreaName);
+                    var infoAreaSrv = SUServices.GetInfoAreaService(infoAreaName);
                     var targetSchema = infoAreaSrv.Schema;
-                    var targetBO = new BusinessObject(infoAreaSrv.InfoAreaId);
+                    var targetBO = new BusinessObject(SUServices, infoAreaSrv.Schema.InfoAreaId);
 
                     foreach (var field in targetNode.SelectNodes("*").OfType<XmlNode>())
                     {
@@ -79,13 +86,18 @@ namespace StrictLine.ACRMIf.FireWebHandler
                         targetBO.Set(fieldId, field.Value);
                     }
 
-                    targetBusinessObjects.Add(new Tuple<string, BusinessObject>("update", targetBO));
+                    targetBusinessObjects.Add(new Tuple<string, BusinessObject>(operationName, targetBO));
                 }
-                catch (Exception e) { /* Potentially output e.Message and/or e.StackTrace for diagnostic purposes */ }
+                catch (Exception e)
+                {
+                    // For the integrity of processed request and recorded operations
+                    targetBusinessObjects.Add(new Tuple<string, BusinessObject>(operationName, null));
+
+                    /* Potentially output e.Message and/or e.StackTrace for diagnostic purposes */
+                }
 
 
             }
-
 
             return targetBusinessObjects;
         }

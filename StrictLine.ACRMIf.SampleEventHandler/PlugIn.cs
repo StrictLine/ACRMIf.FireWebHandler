@@ -24,16 +24,18 @@ namespace StrictLine.ACRMIf.SampleEventHandler
 
         public void Init(IServiceContainer services, XPathNavigator settingsNavigator)
         {
-            Log.Current.AlertFormat(new LogFacility("DEMO::EventHandler CHECKPOINT---"), "PlugIn INIT PART");
+            var startupLogging = new LogFacility("DEMO::EventHandler");
+            Log.Current.Alert(startupLogging, "PlugIn INIT PART");
 
             services.Get<IEventHub>().StartObserving<UpdateEventArgs>("/InfoAreas/FI/PostUpdate", (sender, updArgs) => {
                 Log.Current.AlertFormat(new LogFacility("DEMO::EventHandler CHECKPOINT---"), 
                     "My Handler is running with following changed fields: {0}", updArgs.BusinessObject.FieldIds.Join(','));
 
-                if (updArgs.BusinessObject.FieldIds.Contains(42))
+                // 15 = AreaCode
+                if (updArgs.BusinessObject.FieldIds.Contains(15))
                 {
                     var changedFI = new BusinessObject(updArgs.Services, updArgs.BusinessObject.Uid);
-                    changedFI.Set(15, "+36");
+                    changedFI.Set(13, "MyCountry"); // 13 = Country
                     changedFI.Update();
                 }
 

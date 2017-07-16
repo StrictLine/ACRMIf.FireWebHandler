@@ -46,26 +46,28 @@
     <Reference Include="System.Xml" />
     <Reference Include="update.Crm.Base">
       <HintPath>..\..\..\..\..\Program Files\update.CRM\update.CRM web FS\web\bin\update.Crm.Base.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="update.Crm.Base.Contracts">
       <HintPath>..\..\..\..\..\Program Files\update.CRM\update.CRM web FS\web\bin\update.Crm.Base.Contracts.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="update.Lib">
       <HintPath>..\..\..\..\..\Program Files\update.CRM\update.CRM web FS\web\bin\update.Lib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="update.Lib.Contracts">
       <HintPath>..\..\..\..\..\Program Files\update.CRM\update.CRM web FS\web\bin\update.Lib.Contracts.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="update.Lib.Services">
       <HintPath>..\..\..\..\..\Program Files\update.CRM\update.CRM web FS\web\bin\update.Lib.Services.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PlugIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

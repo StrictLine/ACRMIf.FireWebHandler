@@ -2,6 +2,7 @@
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mca="clr-namespace:Microsoft.CSharp.Activities;assembly=System.Activities"
+ xmlns:s="clr-namespace:System;assembly=mscorlib"
  xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
  xmlns:saf="clr-namespace:StrictLine.ACRMIf.FireWebHandler;assembly=StrictLine.ACRMIf.FireWebHandler"
  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
@@ -9,13 +10,14 @@
  xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
  xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib"
  xmlns:sw="clr-namespace:System.Web;assembly=System.Web"
+ xmlns:ucb="clr-namespace:update.Crm.BusinessObjects;assembly=update.Crm.Base"
  xmlns:uiwa="clr-namespace:update.Interface.Workflows.Activities;assembly=update.Interface"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="request" Type="InArgument(sw:HttpRequest)" />
-    <x:Property Name="response" Type="InArgument(sw:HttpResponse)" />
     <x:Property Name="responseData" Type="OutArgument(x:Object)" />
     <x:Property Name="responseMediaType" Type="OutArgument(x:String)" />
+    <x:Property Name="request" Type="InArgument(sw:HttpRequest)" />
+    <x:Property Name="response" Type="InArgument(sw:HttpResponse)" />
   </x:Members>
   <sap2010:ExpressionActivityEditor.ExpressionActivityEditor>C#</sap2010:ExpressionActivityEditor.ExpressionActivityEditor>
   <sap2010:WorkflowViewState.IdRef>StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler</sap2010:WorkflowViewState.IdRef>
@@ -36,6 +38,7 @@
       <AssemblyReference>System.Activities</AssemblyReference>
       <AssemblyReference>System.Core</AssemblyReference>
       <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
       <AssemblyReference>System.Runtime.Serialization</AssemblyReference>
       <AssemblyReference>System.ServiceModel</AssemblyReference>
       <AssemblyReference>System.ServiceModel.Activities</AssemblyReference>
@@ -43,9 +46,13 @@
       <AssemblyReference>System.Xaml</AssemblyReference>
       <AssemblyReference>System.Xml</AssemblyReference>
       <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>update.Crm.Base</AssemblyReference>
+      <AssemblyReference>update.Crm.Base.Contracts</AssemblyReference>
       <AssemblyReference>update.Interface</AssemblyReference>
+      <AssemblyReference>update.Lib</AssemblyReference>
+      <AssemblyReference>update.Lib.Contracts</AssemblyReference>
+      <AssemblyReference>update.Lib.Services</AssemblyReference>
       <AssemblyReference>StrictLine.ACRMIf.FireWebHandler</AssemblyReference>
-      <AssemblyReference>System.Drawing</AssemblyReference>
       <AssemblyReference>mscorlib</AssemblyReference>
       <AssemblyReference>StrictLine.ACRMIf.SampleWorkflows</AssemblyReference>
     </sco:Collection>
@@ -54,6 +61,7 @@
     <Sequence.Variables>
       <Variable x:TypeArguments="x:String" Name="inputRequest" />
       <Variable x:TypeArguments="x:String" Name="processedResponse" />
+      <Variable x:TypeArguments="scg:List(s:Tuple(x:String, ucb:BusinessObject))" Name="affectedBOs" />
     </Sequence.Variables>
     <saf:GetHttpBody DisplayName="GetHttpBody of HTTPrequest" sap2010:WorkflowViewState.IdRef="GetHttpBody_2">
       <saf:GetHttpBody.bodyContent>
@@ -72,6 +80,18 @@
         </InArgument>
       </saf:GetHttpBody.httpResponse>
     </saf:GetHttpBody>
+    <saf:FetchPotentialBOChange sap2010:WorkflowViewState.IdRef="FetchPotentialBOChange_1">
+      <saf:FetchPotentialBOChange.targetCRUDs>
+        <OutArgument x:TypeArguments="scg:List(s:Tuple(x:String, ucb:BusinessObject))">
+          <mca:CSharpReference x:TypeArguments="scg:List(s:Tuple(x:String, ucb:BusinessObject))">affectedBOs</mca:CSharpReference>
+        </OutArgument>
+      </saf:FetchPotentialBOChange.targetCRUDs>
+      <saf:FetchPotentialBOChange.xmlRequestStr>
+        <InArgument x:TypeArguments="x:String">
+          <mca:CSharpValue x:TypeArguments="x:String">inputRequest</mca:CSharpValue>
+        </InArgument>
+      </saf:FetchPotentialBOChange.xmlRequestStr>
+    </saf:FetchPotentialBOChange>
     <uiwa:ProcessXml DisplayName="ProcessXmlRequest" sap2010:WorkflowViewState.IdRef="ProcessXml_1" LoggingEnabled="True">
       <uiwa:ProcessXml.Result>
         <OutArgument x:TypeArguments="x:String">
@@ -84,7 +104,12 @@
         </InArgument>
       </uiwa:ProcessXml.Xml>
     </uiwa:ProcessXml>
-    <saf:FireWebHandler targetBusinessObjects="{x:Null}" sap2010:WorkflowViewState.IdRef="FireWebHandler_1">
+    <saf:FireWebHandler sap2010:WorkflowViewState.IdRef="FireWebHandler_2">
+      <saf:FireWebHandler.targetCRUDs>
+        <InArgument x:TypeArguments="scg:List(s:Tuple(x:String, ucb:BusinessObject))">
+          <mca:CSharpValue x:TypeArguments="scg:List(s:Tuple(x:String, ucb:BusinessObject))">affectedBOs</mca:CSharpValue>
+        </InArgument>
+      </saf:FireWebHandler.targetCRUDs>
       <saf:FireWebHandler.xmlResponse>
         <InArgument x:TypeArguments="x:String">
           <mca:CSharpValue x:TypeArguments="x:String">processedResponse</mca:CSharpValue>
@@ -113,23 +138,24 @@
         </InArgument>
       </Assign.Value>
     </Assign>
-    <sads:DebugSymbol.Symbol>d2tDOlxfX1Byb2plY3RzXFZpc3VhbFN0dWRpb1xQcm9qZWN0c1xGaXJlV2ViSGFuZGxlclxTdHJpY3RMaW5lLkFDUk1JZi5TYW1wbGVXb3JrZmxvd3NcVHJpZ2dlclVQREhhbmRsZXIueGFtbBE1A3UOAgEBOgVKFwIBMksFVhcCASJXBV0aAgEaXgVnDgIBEWgFcw4CAQJCC0JWAgFBRwtHWAIBOj0LPV0CATNLdEt6AgExUwtTVQIBKk4LTmICASNaC1paAgEbZTBlOAIBGWELYWICARJwC3BaAgEKawtrXQIBAw==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d2tDOlxfX1Byb2plY3RzXFZpc3VhbFN0dWRpb1xQcm9qZWN0c1xGaXJlV2ViSGFuZGxlclxTdHJpY3RMaW5lLkFDUk1JZi5TYW1wbGVXb3JrZmxvd3NcVHJpZ2dlclVQREhhbmRsZXIueGFtbBU8A44BDgIBAUIFUhcCAVFTBV4iAgFAXwVqFwIBLmsFdhoCAR13BYABDgIBE4EBBYwBDgIBAkoLSlYCAWJPC09YAgFaRQtFXQIBUlsLW1UCAUlWC1aDAQIBQV90X3oCAT9nC2dVAgE3YgtiYgIBL3MLc1oCASZuC257AgEefjB+OAIBHHoLemICARSJAQuJAVoCAQuEAQuEAV0CAQM=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
       <sap2010:ViewStateData Id="GetHttpBody_2" sap:VirtualizedContainerService.HintSize="242,22" />
+      <sap2010:ViewStateData Id="FetchPotentialBOChange_1" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="ProcessXml_1" sap:VirtualizedContainerService.HintSize="242,22" />
-      <sap2010:ViewStateData Id="FireWebHandler_1" sap:VirtualizedContainerService.HintSize="242,22" />
+      <sap2010:ViewStateData Id="FireWebHandler_2" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,62" />
       <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,62" />
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="264,474">
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="264,536">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler" sap:VirtualizedContainerService.HintSize="304,554" />
+      <sap2010:ViewStateData Id="StrictLine.ACRMIf.SampleWorkflows.TriggerUPDHandler" sap:VirtualizedContainerService.HintSize="304,616" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
