@@ -20,6 +20,14 @@ Location (interface Assemblies): \<interfaceInstallationFolder\>\bin\
 - **update.Lib**.dll
 - **update.Lib.Services**.dll
 
+### Dependencies for VS Project - StrictLine.ACRMIf.SampleEventHandler
+Location (web Assemblies): \<webInstallationFolder\>\bin\
+- **update.Crm.Base**.dll
+- **update.Crm.Base.Contracts**.dll
+- **update.Lib.Contracts**.dll
+- **update.Lib**.dll
+- **update.Lib.Services**.dll
+
 Settings.xml Customization:
 _________________________________
 	<update.crm></update.crm>
