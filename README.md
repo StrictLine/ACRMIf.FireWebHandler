@@ -1,6 +1,9 @@
 # ACRMIf.FireWebHandler
 WF 4 Activities for Aurea CRM Interface in order to raise event on EventHub (workaround)
 
+## Developer Notes
+At this moment this is a premature (working) release, in which the most important <import> and <update> commands already trigger the Eventhandler developed for web. Building this project and customizing it for further needs requires a deep understanding in Aurea CRM (formerly update.CRM) development. On-demand contact me at miklos.moricz@strictline.biz
+
 ## First steps
 
 ### Dependencies for VS Project - StrictLine.ARCMIf.FireWebHandler
