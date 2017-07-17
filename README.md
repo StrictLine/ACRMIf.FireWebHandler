@@ -61,6 +61,6 @@ _________________________________
 	</update.server>
 	
 	<update.configuration>
-		<OleDbDsn>Provider=SQL Server Native Client 11.0;Data Source=STRICTLINE-PC;Initial Catalog=ACRMDev_Designer;UID=CRM; PWD=crm</OleDbDsn>
+		<OleDbDsn>MyOLEDBConnectionStringComesHere</OleDbDsn>
 		<Vertical>FS</Vertical>
 	</update.configuration>	
